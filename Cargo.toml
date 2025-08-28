@@ -3,6 +3,7 @@ members = [
     "examples",
     "jito_protos",
     "proxy",
+    "transaction_protos",
 ]
 resolver = "2"
 
@@ -27,6 +28,7 @@ env_logger = "0.11"
 hostname = "0.4.0"
 itertools = "0.14.0"
 jito-protos = { path = "jito_protos" }
+transaction-protos = { path = "transaction_protos" }
 log = "0.4"
 prost = "0.13"
 prost-types = "0.13"

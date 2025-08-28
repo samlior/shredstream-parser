@@ -5,23 +5,26 @@ use std::{
     time::Duration,
 };
 
+use crate::forwarder::DeshreddedEntry;
 use crossbeam_channel::Receiver;
-use jito_protos::shredstream::{
-    shredstream_proxy_server::{ShredstreamProxy, ShredstreamProxyServer},
-    Entry as PbEntry, SubscribeEntriesRequest,
-};
 use log::{debug, info};
 use tokio::sync::broadcast::{Receiver as BroadcastReceiver, Sender};
 use tonic::codegen::tokio_stream::wrappers::ReceiverStream;
+use transaction_protos::transaction::{
+    transaction_service_server::{
+        TransactionService as PbTransactionService, TransactionServiceServer,
+    },
+    TransactionBatch,
+};
 
 #[derive(Debug)]
-pub struct ShredstreamProxyService {
-    entry_sender: Arc<Sender<PbEntry>>,
+pub struct TransactionService {
+    entry_sender: Arc<Sender<DeshreddedEntry>>,
 }
 
 pub fn start_server_thread(
     addr: SocketAddr,
-    entry_sender: Arc<Sender<PbEntry>>,
+    entry_sender: Arc<Sender<DeshreddedEntry>>,
     exit: Arc<AtomicBool>,
     shutdown_receiver: Receiver<()>,
 ) -> JoinHandle<()> {
@@ -31,7 +34,7 @@ pub fn start_server_thread(
         let server_handle = runtime.spawn(async move {
             info!("starting server on {:?}", addr);
             tonic::transport::Server::builder()
-                .add_service(ShredstreamProxyServer::new(ShredstreamProxyService {
+                .add_service(TransactionServiceServer::new(TransactionService {
                     entry_sender,
                 }))
                 .serve(addr)
@@ -51,20 +54,25 @@ pub fn start_server_thread(
         }
     })
 }
-#[tonic::async_trait]
-impl ShredstreamProxy for ShredstreamProxyService {
-    type SubscribeEntriesStream = ReceiverStream<Result<PbEntry, tonic::Status>>;
 
-    async fn subscribe_entries(
+#[tonic::async_trait]
+impl PbTransactionService for TransactionService {
+    type SubscribeTransactionsStream = ReceiverStream<Result<TransactionBatch, tonic::Status>>;
+
+    async fn subscribe_transactions(
         &self,
-        _request: tonic::Request<SubscribeEntriesRequest>,
-    ) -> Result<tonic::Response<Self::SubscribeEntriesStream>, tonic::Status> {
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<Self::SubscribeTransactionsStream>, tonic::Status> {
         let (tx, rx) = tokio::sync::mpsc::channel(100);
-        let mut entry_receiver: BroadcastReceiver<PbEntry> = self.entry_sender.subscribe();
+        let mut entry_receiver: BroadcastReceiver<DeshreddedEntry> = self.entry_sender.subscribe();
 
         tokio::spawn(async move {
             while let Ok(entry) = entry_receiver.recv().await {
-                match tx.send(Ok(entry)).await {
+                let transaction_batch = TransactionBatch {
+                    slot: entry.slot,
+                    transactions: vec![], // TODO: parse entries to transactions
+                };
+                match tx.send(Ok(transaction_batch)).await {
                     Ok(_) => (),
                     Err(_e) => {
                         debug!("client disconnected");

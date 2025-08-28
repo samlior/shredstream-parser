@@ -66,7 +66,7 @@ pub fn reconstruct_shreds(
         ),
     >,
     slot_fec_indexes_to_iterate: &mut Vec<(Slot, u32)>,
-    deshredded_entries: &mut Vec<(Slot, Vec<solana_entry::entry::Entry>, Vec<u8>)>,
+    deshredded_entries: &mut Vec<(Slot, Vec<solana_entry::entry::Entry>)>,
     highest_slot_seen: &mut Slot,
     rs_cache: &ReedSolomonCache,
     metrics: &ShredMetrics,
@@ -243,7 +243,7 @@ pub fn reconstruct_shreds(
             entries.len(),
         );
 
-        deshredded_entries.push((*slot, entries, deshredded_payload));
+        deshredded_entries.push((*slot, entries));
         to_deshred.iter().for_each(|shred| {
             let Some(shred) = shred.as_ref() else {
                 return;
@@ -700,7 +700,7 @@ mod tests {
         assert_eq!(
             deshredded_entries
                 .iter()
-                .map(|(_slot, entries, _entries_bytes)| entries.len())
+                .map(|(_slot, entries)| entries.len())
                 .sum::<usize>(),
             13580
         );
@@ -708,7 +708,7 @@ mod tests {
 
         let slot_to_entry = deshredded_entries
             .iter()
-            .into_group_map_by(|(slot, _entries, _entries_bytes)| *slot);
+            .into_group_map_by(|(slot, _entries)| *slot);
         // slot_to_entry
         //     .iter()
         //     .sorted_by_key(|(slot, _)| *slot)
@@ -757,7 +757,7 @@ mod tests {
         assert_eq!(
             deshredded_entries
                 .iter()
-                .map(|(_slot, entries, _entries_bytes)| entries.len())
+                .map(|(_slot, entries)| entries.len())
                 .sum::<usize>(),
             13580
         );
@@ -765,19 +765,19 @@ mod tests {
 
         let slot_to_entry = deshredded_entries
             .iter()
-            .into_group_map_by(|(slot, _entries, _entries_bytes)| *slot);
+            .into_group_map_by(|(slot, _entries)| *slot);
         assert_eq!(slot_to_entry.len(), 29);
     }
 
     /// Helper function to compare all shred output
     #[allow(unused)]
     fn debug_to_disk(
-        deshredded_entries: &[(Slot, Vec<solana_entry::entry::Entry>, Vec<u8>)],
+        deshredded_entries: &[(Slot, Vec<solana_entry::entry::Entry>)],
         filepath: &str,
     ) {
         let entries = deshredded_entries
             .iter()
-            .map(|(slot, entries, _entries_bytes)| (slot, entries))
+            .map(|(slot, entries)| (slot, entries))
             .into_group_map_by(|(slot, _entries)| *slot)
             .into_iter()
             .map(|(key, values)| {
@@ -877,7 +877,7 @@ mod tests {
         assert_eq!(
             deshredded_entries
                 .iter()
-                .map(|(_slot, entries, _entries_bytes)| entries.len())
+                .map(|(_slot, entries)| entries.len())
                 .sum::<usize>(),
             43170
         );
@@ -885,7 +885,7 @@ mod tests {
 
         let slot_to_entry = deshredded_entries
             .iter()
-            .into_group_map_by(|(slot, _entries, _entries_bytes)| *slot);
+            .into_group_map_by(|(slot, _entries)| *slot);
         // slot_to_entry
         //     .iter()
         //     .sorted_by_key(|(slot, _)| *slot)
@@ -934,7 +934,7 @@ mod tests {
         assert_eq!(
             deshredded_entries
                 .iter()
-                .map(|(_slot, entries, _entries_bytes)| entries.len())
+                .map(|(_slot, entries)| entries.len())
                 .sum::<usize>(),
             43170
         );
@@ -942,7 +942,7 @@ mod tests {
 
         let slot_to_entry = deshredded_entries
             .iter()
-            .into_group_map_by(|(slot, _entries, _entries_bytes)| *slot);
+            .into_group_map_by(|(slot, _entries)| *slot);
         assert_eq!(slot_to_entry.len(), 61);
     }
 
@@ -1020,7 +1020,7 @@ mod tests {
         assert_eq!(
             deshredded_entries
                 .iter()
-                .map(|(_slot, entries, _entries_bytes)| entries.len())
+                .map(|(_slot, entries)| entries.len())
                 .sum::<usize>(),
             entries.len()
         );
@@ -1054,7 +1054,7 @@ mod tests {
         assert_eq!(
             deshredded_entries
                 .iter()
-                .map(|(_slot, entries, _entries_bytes)| entries.len())
+                .map(|(_slot, entries)| entries.len())
                 .sum::<usize>(),
             entries.len()
         );

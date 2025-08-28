@@ -13,11 +13,11 @@ use arc_swap::ArcSwap;
 use crossbeam_channel::{Receiver, RecvError};
 use dashmap::DashMap;
 use itertools::Itertools;
-use jito_protos::shredstream::{Entry as PbEntry, TraceShred};
+use jito_protos::shredstream::TraceShred;
 use log::{debug, error, info, warn};
 use prost::Message;
-use solana_ledger::shred::ReedSolomonCache;
 use solana_client::client_error::reqwest;
+use solana_ledger::shred::ReedSolomonCache;
 use solana_metrics::{datapoint_info, datapoint_warn};
 use solana_net_utils::SocketConfig;
 use solana_perf::{
@@ -43,6 +43,12 @@ pub const DEDUPER_FALSE_POSITIVE_RATE: f64 = 0.001;
 pub const DEDUPER_NUM_BITS: u64 = 637_534_199; // 76MB
 pub const DEDUPER_RESET_CYCLE: Duration = Duration::from_secs(5 * 60);
 
+#[derive(Clone)]
+pub struct DeshreddedEntry {
+    pub slot: Slot,
+    pub entries: Vec<solana_entry::entry::Entry>,
+}
+
 /// Bind to ports and start forwarding shreds
 #[allow(clippy::too_many_arguments)]
 pub fn start_forwarder_threads(
@@ -52,7 +58,7 @@ pub fn start_forwarder_threads(
     num_threads: Option<usize>,
     deduper: Arc<RwLock<Deduper<2, [u8]>>>,
     should_reconstruct_shreds: bool,
-    entry_sender: Arc<Sender<PbEntry>>,
+    entry_sender: Arc<Sender<DeshreddedEntry>>,
     debug_trace_shred: bool,
     use_discovery_service: bool,
     forward_stats: Arc<StreamerReceiveStats>,
@@ -94,8 +100,7 @@ pub fn start_forwarder_threads(
                     ),
                 >::default();
                 let mut slot_fec_indexes_to_iterate = Vec::<(Slot, u32)>::new();
-                let mut deshredded_entries =
-                    Vec::<(Slot, Vec<solana_entry::entry::Entry>, Vec<u8>)>::new();
+                let mut deshredded_entries = Vec::<(Slot, Vec<solana_entry::entry::Entry>)>::new();
                 let mut highest_slot_seen: Slot = 0;
                 let rs_cache = ReedSolomonCache::default();
 
@@ -112,14 +117,12 @@ pub fn start_forwarder_threads(
                                 &metrics,
                             );
 
-                            deshredded_entries.drain(..).for_each(
-                                |(slot, _entries, entries_bytes)| {
-                                    let _ = entry_sender.send(PbEntry {
-                                        slot,
-                                        entries: entries_bytes,
-                                    });
-                                },
-                            );
+                            deshredded_entries.drain(..).for_each(|(slot, _entries)| {
+                                let _ = entry_sender.send(DeshreddedEntry {
+                                    slot,
+                                    entries: _entries,
+                                });
+                            });
                         }
                         Err(crossbeam_channel::RecvTimeoutError::Timeout) => {} // do nothing
                         Err(crossbeam_channel::RecvTimeoutError::Disconnected) => break,

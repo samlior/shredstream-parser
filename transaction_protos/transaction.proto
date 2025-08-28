@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package transaction;
+
+import "google/protobuf/empty.proto";
+
+message Transaction {
+    string tx_hash = 1;
+    string maker = 2;
+    string token0_address = 3;
+    string token1_address = 4;
+    string token0_amount = 5;
+    string token1_amount = 6;
+    string program = 7;
+}
+
+message TransactionBatch {
+  // the slot that the transaction is from
+  uint64 slot = 1;
+
+  // the transaction
+  repeated Transaction transactions = 2;
+}
+
+service TransactionService {
+    rpc SubscribeTransactions(google.protobuf.Empty) returns (stream TransactionBatch);
+}
