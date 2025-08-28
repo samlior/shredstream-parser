@@ -31,7 +31,7 @@ fn parse_create_coin_args(
     transaction: &VersionedTransaction,
     instruction: &CompiledInstruction,
 ) -> Result<Transaction, &'static str> {
-    if instruction.accounts.len() < 8 {
+    if instruction.accounts.len() < 7 {
         return Err("accounts too short");
     }
 
@@ -43,7 +43,7 @@ fn parse_create_coin_args(
     }
     let mint = static_keys[mint_index];
 
-    let creator_index = instruction.accounts[7] as usize;
+    let creator_index = instruction.accounts[6] as usize;
     if creator_index >= static_keys.len() {
         return Err("creator index out of bounds");
     }
@@ -105,7 +105,7 @@ fn parse_buy_tokens_args(
 
     let (amount, max_sol) = res.unwrap();
 
-    if instruction.accounts.len() < 8 {
+    if instruction.accounts.len() < 7 {
         return Err("accounts too short");
     }
 
@@ -117,7 +117,7 @@ fn parse_buy_tokens_args(
     }
     let mint = static_keys[mint_index];
 
-    let buyer_index = instruction.accounts[7] as usize;
+    let buyer_index = instruction.accounts[6] as usize;
     if buyer_index >= static_keys.len() {
         return Err("buyer index out of bounds");
     }
@@ -179,7 +179,7 @@ fn parse_sell_tokens_args(
     }
     let (amount, min_sol) = res.unwrap();
 
-    if instruction.accounts.len() < 8 {
+    if instruction.accounts.len() < 7 {
         return Err("accounts too short");
     }
 
@@ -191,7 +191,7 @@ fn parse_sell_tokens_args(
     }
     let mint = static_keys[mint_index];
 
-    let seller_index = instruction.accounts[7] as usize;
+    let seller_index = instruction.accounts[6] as usize;
     if seller_index >= static_keys.len() {
         return Err("seller index out of bounds");
     }
