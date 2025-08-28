@@ -1,33 +1,24 @@
-use jito_protos::shredstream::{
-    shredstream_proxy_client::ShredstreamProxyClient, SubscribeEntriesRequest,
-};
+use transaction_protos::transaction::transaction_service_client::TransactionServiceClient;
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    let mut client = ShredstreamProxyClient::connect("http://127.0.0.1:9999")
+    let mut client = TransactionServiceClient::connect("http://127.0.0.1:20010")
         .await
         .unwrap();
     let mut stream = client
-        .subscribe_entries(SubscribeEntriesRequest {})
+        .subscribe_transactions(tonic::Request::new(()))
         .await
         .unwrap()
         .into_inner();
 
-    while let Some(slot_entry) = stream.message().await.unwrap() {
-        let entries =
-            match bincode::deserialize::<Vec<solana_entry::entry::Entry>>(&slot_entry.entries) {
-                Ok(e) => e,
-                Err(e) => {
-                    println!("Deserialization failed with err: {e}");
-                    continue;
-                }
-            };
-        println!(
-            "slot {}, entries: {}, transactions: {}",
-            slot_entry.slot,
-            entries.len(),
-            entries.iter().map(|e| e.transactions.len()).sum::<usize>()
-        );
+    while let Some(transacion_batch) = stream.message().await.unwrap() {
+        for transaction in transacion_batch.transactions {
+            println!(
+                "slot {}, transaction: {:?}",
+                transacion_batch.slot, transaction
+            );
+        }
     }
+
     Ok(())
 }

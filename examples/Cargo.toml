@@ -5,9 +5,10 @@ publish = false
 
 [dependencies]
 bincode = { workspace = true }
-jito-protos = { path = "../jito_protos" }
+transaction-protos = { path = "../transaction_protos" }
 solana-entry = { workspace = true }
 tokio = { version = "1", features = ["full"] }
+tonic = { workspace = true }
 
 [[example]]
 name = "deshred"

@@ -1642,9 +1642,10 @@ name = "examples"
 version = "0.0.0"
 dependencies = [
  "bincode",
- "jito-protos",
  "solana-entry 2.2.1",
  "tokio",
+ "tonic 0.13.1",
+ "transaction-protos",
 ]
 
 [[package]]
