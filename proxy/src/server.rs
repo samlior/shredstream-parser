@@ -6,6 +6,7 @@ use std::{
 };
 
 use crate::forwarder::DeshreddedEntry;
+use crate::transaction::parse_transaction;
 use crossbeam_channel::Receiver;
 use log::{debug, info};
 use tokio::sync::broadcast::{Receiver as BroadcastReceiver, Sender};
@@ -68,10 +69,20 @@ impl PbTransactionService for TransactionService {
 
         tokio::spawn(async move {
             while let Ok(entry) = entry_receiver.recv().await {
-                let transaction_batch = TransactionBatch {
+                let mut transaction_batch = TransactionBatch {
                     slot: entry.slot,
-                    transactions: vec![], // TODO: parse entries to transactions
+                    transactions: vec![],
                 };
+
+                for entry in entry.entries {
+                    for versioned_transaction in entry.transactions {
+                        let transactions = parse_transaction(&versioned_transaction);
+                        if !transactions.is_empty() {
+                            transaction_batch.transactions.extend(transactions);
+                        }
+                    }
+                }
+
                 match tx.send(Ok(transaction_batch)).await {
                     Ok(_) => (),
                     Err(_e) => {

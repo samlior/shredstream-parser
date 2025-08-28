@@ -12,6 +12,7 @@ message Transaction {
     string token0_amount = 5;
     string token1_amount = 6;
     string program = 7;
+    string event = 8;
 }
 
 message TransactionBatch {

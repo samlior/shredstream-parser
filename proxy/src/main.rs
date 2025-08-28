@@ -36,6 +36,7 @@ pub mod forwarder;
 mod heartbeat;
 mod server;
 mod token_authenticator;
+mod transaction;
 
 #[derive(Clone, Debug, Parser)]
 #[clap(author, version, about, long_about = None)]
