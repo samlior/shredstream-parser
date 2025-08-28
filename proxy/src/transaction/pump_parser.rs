@@ -31,7 +31,7 @@ fn parse_create_coin_args(
     transaction: &VersionedTransaction,
     instruction: &CompiledInstruction,
 ) -> Result<Transaction, &'static str> {
-    if instruction.accounts.len() < 7 {
+    if instruction.accounts.len() < 8 {
         return Err("accounts too short");
     }
 
@@ -43,7 +43,7 @@ fn parse_create_coin_args(
     }
     let mint = static_keys[mint_index];
 
-    let creator_index = instruction.accounts[6] as usize;
+    let creator_index = instruction.accounts[7] as usize;
     if creator_index >= static_keys.len() {
         return Err("creator index out of bounds");
     }
