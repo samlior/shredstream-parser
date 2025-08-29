@@ -8,6 +8,6 @@ fn main() {
     }
 
     configure()
-        .compile_protos(&["transaction.proto"], &["."])
+        .compile_protos(&["protos/transaction.proto"], &["."])
         .unwrap();
 }

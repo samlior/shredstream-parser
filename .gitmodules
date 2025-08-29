@@ -1,3 +1,6 @@
 [submodule "jito_protos/protos"]
 	path = jito_protos/protos
 	url = https://github.com/jito-labs/mev-protos.git
+[submodule "transaction_protos/protos"]
+	path = transaction_protos/protos
+	url = https://github.com/samlior/transaction-protos.git
