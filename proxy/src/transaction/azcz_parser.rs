@@ -35,7 +35,7 @@ fn parse_buy_tokens_args(
     }
     let user = static_keys[user_index];
 
-    if let Ok(args) = BuyArgs::try_from_slice(&instruction.data[..]) {
+    if let Ok(args) = BuyArgs::try_from_slice(&instruction.data[1..]) {
         Ok(Transaction {
             tx_hash: transaction.signatures[0].to_string(),
             maker: user.to_string(),
