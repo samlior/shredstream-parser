@@ -1,18 +1,17 @@
+use crate::transaction::common::{format_sol_amount, format_token_amount, WSOL_MINT};
 use borsh::BorshDeserialize;
 use solana_sdk::{instruction::CompiledInstruction, transaction::VersionedTransaction};
 use transaction_protos::transaction::Transaction;
 
 // reference: https://github.com/dev12375/Jito-Shredstream-Client/blob/main/src/transaction/pump_parser.rs
 
-pub const WSOL_MINT: &str = "So11111111111111111111111111111111111111112";
-
 // Pump program ID
 pub const PUMP_PROGRAM_ID: &str = "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P";
 
 // Pump instruction number constants
-pub const CREATE_COIN_IX: u8 = 24;
-pub const EXTENDED_SELL_IX: u8 = 51;
-pub const BUY_TOKENS_IX: u8 = 102;
+const CREATE_COIN_IX: u8 = 24;
+const EXTENDED_SELL_IX: u8 = 51;
+const BUY_TOKENS_IX: u8 = 102;
 
 #[derive(BorshDeserialize, Debug)]
 struct ExtendedSellArgs {
@@ -207,17 +206,6 @@ fn parse_sell_tokens_args(
         program: "pump".to_string(),
         event: "sell".to_string(),
     })
-}
-
-pub fn format_token_amount(amount: u64) -> String {
-    let sol = amount as f64 / 1_000_000.0;
-    format!("{:.6}", sol)
-}
-
-/// Convert lamports to SOL string
-pub fn format_sol_amount(lamports: u64) -> String {
-    let sol = lamports as f64 / 1_000_000_000.0;
-    format!("{:.9}", sol)
 }
 
 pub fn parse_pump_instruction(
