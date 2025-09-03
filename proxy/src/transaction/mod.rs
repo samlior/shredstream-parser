@@ -10,6 +10,9 @@ use pump_parser::{parse_pump_instruction, PUMP_PROGRAM_ID};
 mod azcz_parser;
 use azcz_parser::{parse_azcz_instruction, AZCZ_PROGRAM_ID};
 
+mod f5tf_parser;
+use f5tf_parser::{parse_f5tf_instruction, F5TF_PROGRAM_ID};
+
 pub fn parse_transaction(transaction: &VersionedTransaction) -> Vec<Transaction> {
     let mut transactions = Vec::new();
 
@@ -48,6 +51,20 @@ pub fn parse_transaction(transaction: &VersionedTransaction) -> Vec<Transaction>
                 Some(Err(e)) => {
                     warn!(
                         "failed to parse azcz instruction: {:?}, tx_hash: {}",
+                        e, tx_hash
+                    );
+                }
+                _ => {}
+            }
+        } else if program_id == Pubkey::from_str_const(F5TF_PROGRAM_ID) {
+            let result = parse_f5tf_instruction(transaction, instruction_index);
+            match result {
+                Some(Ok(transaction)) => {
+                    transactions.push(transaction);
+                }
+                Some(Err(e)) => {
+                    warn!(
+                        "failed to parse f5tf instruction: {:?}, tx_hash: {}",
                         e, tx_hash
                     );
                 }
