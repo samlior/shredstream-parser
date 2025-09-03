@@ -41,8 +41,8 @@ fn parse_buy_tokens_args(
             maker: user.to_string(),
             token0_address: mint.to_string(),
             token1_address: WSOL_MINT.to_string(),
-            token0_amount: format_sol_amount(args.token_amount),
-            token1_amount: format_token_amount(args.sol_amount),
+            token0_amount: format_token_amount(args.token_amount),
+            token1_amount: format_sol_amount(args.sol_amount),
             program: "pump".to_string(),
             event: "buy".to_string(),
         })
